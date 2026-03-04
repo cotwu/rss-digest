@@ -1,0 +1,41 @@
+name: RSS Digest 每日推送
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 00:00 UTC = 台灣時間早上 08:00
+  workflow_dispatch:       # 允許在 GitHub 網頁上手動觸發
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 取出程式碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安裝套件
+        run: npm install
+
+      - name: 執行 RSS Digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RSS_URL: ${{ secrets.RSS_URL }}
+        run: node main.js
+
+      - name: 儲存已推送記錄
+        run: |
+          git config user.name "RSS Digest Bot"
+          git config user.email "rss-bot@noreply"
+          git add seen_articles.json
+          git diff --staged --quiet || git commit -m "chore: update seen articles"
+          git push

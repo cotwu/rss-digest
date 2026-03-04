@@ -1,0 +1,8 @@
+# 絕對不能上傳到 GitHub 的檔案
+.env
+
+# 套件資料夾（太大了，GitHub 不需要）
+node_modules/
+
+# 執行 log（本機用就好）
+log.txt
