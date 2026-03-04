@@ -22,6 +22,17 @@ const {
   RSS_URL,
 } = process.env;
 
+// 只取網址的主體部分（去掉 access_token 等會變動的參數）
+function normalizeUrl(url) {
+  try {
+    const u = new URL(url);
+    u.searchParams.delete("access_token");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 function loadSeen() {
   if (fs.existsSync(SEEN_FILE)) {
     return new Set(JSON.parse(fs.readFileSync(SEEN_FILE, "utf8")));
@@ -184,7 +195,7 @@ async function main() {
   const parser = new RSSParser();
   const feed = await parser.parseURL(RSS_URL);
 
-  const newArticles = feed.items.filter((item) => !seen.has(item.link));
+  const newArticles = feed.items.filter((item) => !seen.has(normalizeUrl(item.link)));
 
   if (newArticles.length === 0) {
     console.log("  沒有新文章。");
@@ -204,7 +215,7 @@ async function main() {
     await sendEmail(title, summary, link);
     await sendTelegram(title, summary, link);
 
-    seen.add(link);
+    seen.add(normalizeUrl(link));
     saveSeen(seen);
   }
 
