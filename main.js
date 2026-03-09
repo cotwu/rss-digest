@@ -195,6 +195,12 @@ async function main() {
   const parser = new RSSParser();
   const feed = await parser.parseURL(RSS_URL);
 
+  console.log("  RSS feed 文章：");
+  feed.items.forEach((item) => {
+    const url = normalizeUrl(item.link);
+    console.log(`    [${seen.has(url) ? "已見" : "新文章"}] ${item.title} | ${url}`);
+  });
+
   const newArticles = feed.items.filter((item) => !seen.has(normalizeUrl(item.link)));
 
   if (newArticles.length === 0) {
